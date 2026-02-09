@@ -122,3 +122,79 @@ script用于写前端代码， template用于写html，style写jss
 ![截屏2026-02-09 17.43.51](assets/截屏2026-02-09 17.43.51.png)
 
 [vue文档](https://cn.vuejs.org/guide/quick-start)
+
+安装tailwind组件
+
+==约定文件夹小写，vue文件用山峰命名法==
+
+在app.vue中引入navbar组件
+
+![截屏2026-02-09 22.03.41](assets/截屏2026-02-09 22.03.41.png)
+
+中间的内容会直接填充到NavBar.vue的slot里面
+
+![截屏2026-02-09 22.06.36](assets/截屏2026-02-09 22.06.36.png)
+
+![截屏2026-02-09 22.07.25](assets/截屏2026-02-09 22.07.25.png)
+
+
+
+
+
+修改标题使用font-bold加粗，text-xl调整字体大小，px-4定义标签和文学的距离
+
+![截屏2026-02-09 22.11.39](assets/截屏2026-02-09 22.11.39.png)
+
+![截屏2026-02-09 22.11.52](assets/截屏2026-02-09 22.11.52.png)
+
+为上方导航栏更改颜色，并添加一条阴影
+
+100数越大越黑，sm调整阴影大小
+
+![截屏2026-02-09 22.20.48](assets/截屏2026-02-09 22.20.48.png)
+
+![截屏2026-02-09 22.22.06](assets/截屏2026-02-09 22.22.06.png)
+
+command+shfit+c，可以看见内部元素距离外部元素的距离（padding）
+
+![截屏2026-02-09 22.23.36](assets/截屏2026-02-09 22.24.52.png)
+
+通用在navbar中修改为px-2
+
+![截屏2026-02-09 22.26.03](assets/截屏2026-02-09 22.26.03.png)
+
+一个元素内部有一个元素的话，那么内部元素距离外部的部分就是padding
+
+如果一个元素外边还有元素，那么这个距离是margin
+
+区分4个方向，left/right/top/bottom
+
+px,py,pt,pb表示padding的4个方向
+
+mx,my,mt,mb表示margin的4个方向
+
+输入下面代码，按tab键直接展开
+
+```vue
+div.navbar-center
+<div class="navbar-center"></div>
+```
+
+![截屏2026-02-09 23.08.58](assets/截屏2026-02-09 23.08.58.png)
+
+## 对接前后端
+
+```bash
+npm eun build
+```
+
+运行后代码会直接生成到backend/static里面
+
+修改backend/web/templates/index.html中的js和css文件
+
+运行后段程序查看效果
+
+```bash
+python manage.py runserver
+```
+
