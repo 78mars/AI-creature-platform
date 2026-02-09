@@ -109,7 +109,16 @@ url调用函数index，index.py返回index.html页面
 
 使得上传git的时候避免将敏感内容提交到git上
 
+github创建ssh连接管理见博客[使用SSH key管理认证github](https://blog.csdn.net/m0_69083259/article/details/157906537?spm=1001.2014.3001.5501)
 
 
 
+# 前端导航栏创建
 
+前端vue文件
+
+script用于写前端代码， template用于写html，style写jss
+
+![截屏2026-02-09 17.43.51](assets/截屏2026-02-09 17.43.51.png)
+
+[vue文档](https://cn.vuejs.org/guide/quick-start)
