@@ -198,8 +198,85 @@ npm eun build
 python manage.py runserver
 ```
 
-设置导航栏居中，调整紫色边栏居中
+## 设置导航栏居中，调整紫色边栏居中
 
 ![截屏2026-02-21 16.12.17](assets/截屏2026-02-21 16.12.17.png)
 
 ![截屏2026-02-21 16.12.36](assets/截屏2026-02-21 16.12.36.png)
+
+## 一套提交流程
+
+git status查看本地是否有修改
+
+git pull查看云端的代码
+
+git push推送云端
+
+# 登陆模块
+
+配置域名
+
+网站名后面的就是域名
+
+路由在文件frontend/src/router/index.js
+
+![截屏2026-02-21 17.35.37](assets/截屏2026-02-21 17.35.37.png)
+
+设置兜底路由，从上到下匹配路由，如果都没匹配上就到这个兜底路由
+
+取出user_id变量
+
+
+
+动态取出变量user_id
+
+==route用于取出当前url的信息==
+
+![截屏2026-02-24 23.57.55](assets/截屏2026-02-24 23.57.55.png)
+
+在index.js文件中设置的变量名user_id
+
+```javascript
+{
+  path: '/user/space/:user_id',
+  component: SpaceIndex,
+  name: 'user-space-index',
+},
+```
+
+当访问网址/user/space/123的时候Vue Router 会自动解析成
+```javascript
+route.params = {
+  user_id: "123"
+}
+```
+
+route  = 我现在在哪
+router = 我要去哪
+
+
+
+RouterLink修改后点击创作按钮之后，会自动将url改为to后面的页面，之后根据name对应的组件，将组件渲染出来
+
+使用对象路由进行跳转的时候主要to前面要加冒号，否则就会识别为字符串导致路由乱码
+Vue Router 查找路由表里 `name` 为 `user-account-login-index` 的那条记录
+
+找到frontend/src/views/user/account/LoginIndex.vue中的组件进行渲染
+
+```vue
+<RouterLink :to="{name: 'user-account-login-index'}" class="btn btn-ghost text-lg">
+  登陆
+</RouterLink>
+```
+
+Menu-focus/menu-active实现按钮高亮
+
+实现点击按钮跳转后的高亮，使用active-class，即跳转的router和routerlink里面的一样的话，则自动激活到class中
+
+![截屏2026-02-25 22.22.36](assets/截屏2026-02-25 22.22.36.png)
+
+Menu-active效果
+
+![截屏2026-02-25 22.23.48](assets/截屏2026-02-25 22.23.48.png)
+
+登陆按钮则不太一样是，btn-active
