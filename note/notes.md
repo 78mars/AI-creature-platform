@@ -280,3 +280,17 @@ Menu-active效果
 ![截屏2026-02-25 22.23.48](assets/截屏2026-02-25 22.23.48.png)
 
 登陆按钮则不太一样是，btn-active
+
+## 登陆界面
+
+实现登陆组件居中方法，放入
+
+```vue
+<div class="flex justify-center mt-12">
+  登陆组件
+</div>
+```
+
+这个tag中
+
+使用margin-top设置上边距
