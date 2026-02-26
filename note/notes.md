@@ -294,3 +294,56 @@ Menu-active效果
 这个tag中
 
 使用margin-top设置上边距
+
+后端逻辑
+
+Django后端登陆http://127.0.0.1:8000/admin页面
+
+admin
+
+123
+
+![截屏2026-02-26 15.12.08](assets/截屏2026-02-26 15.12.08.png)
+
+Django创建数据库，在路径backend/models软件包
+
+用户上传的图片都存入backend/media文件夹
+
+开发者相关的图片放入static中
+
+自定义文件上传路径
+
+```python
+def photo_upload_to(instance, filename):
+  ext = filename.split('.')[-1] # 获取文件的后缀名
+  filename = f'{uuid.uuid4().hex[:10]}.{ext}'
+  return f'user/photo/{instance.user_id}_{filename}'
+```
+
+instance是User Profile的一个对象，filename为用户上传的原始文件名
+
+spilt('.')字符串方法，用于按照符号.分割为一个列表，如果如果文件名是 `vacation.photo.png`，分割后变成 `['vacation', 'photo', 'png']`其中的[-1]代表倒序索引。即获取列表的最后一个元素，也就是文件的后缀，存入变量ext
+
+这里使用了 f-string (格式化字符串)，大括号 `{}` 里的内容会被计算并填入字符串中。uuid.uuid4()生成一个随机的唯一的标识符号，hex方法将它转换为16进制字符串`[:10]`**: **切片操作。只截取前 10 位字符,10位随机数已经可以保证一个用户文件夹下不重复，**`.{ext}`**: 把刚才提取的后缀拼回去。
+
+
+
+python manage.py makemigrations生成数据库更新操作
+
+python manage.py migrate将数据库的更新同步到db.sqlite3
+
+将之前定义的 `UserProfile` 模型注册到 **Django Admin（后台管理系统）** 中，以便你能在网页界面上直接增删改查用户信息。
+
+![截屏2026-02-26 17.37.07](assets/截屏2026-02-26 17.37.07.png)
+
+`UserProfile` 关联了 `User`（用户表）。默认情况下，Django 后台会把所有用户放在一个**下拉列表（Select）**里。如果你的网站有 10 万个用户，后台加载编辑页面时，Django 会尝试把 10 万个用户全部读进内存来渲染那个下拉框，这会导致**页面加载极其缓慢甚至崩溃**。
+
+**解决方案（raw_id_fields）**：
+
+它把下拉列表变成了**一个输入框**。旁边会有一个**放大镜图标**。点击后会弹出一个小窗口让你搜索用户。找到用户后，它只把用户的 `ID`（一个数字）填回输入框。
+
+**结论**：这是处理大数据量关联关系时的**性能优化**必备手段。
+
+使用默认的方法，raw_id_fields = []
+
+![截屏2026-02-26 17.39.24](assets/截屏2026-02-26 17.39.24.png)
