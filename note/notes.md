@@ -185,7 +185,7 @@ div.navbar-center
 ## 对接前后端
 
 ```bash
-npm eun build
+npm run build
 ```
 
 运行后代码会直接生成到backend/static里面
@@ -443,3 +443,148 @@ python中如果是空字符串的话，not之后就是true
 路由前面加一个api防止和前端路由冲突，注意引入包，是自己写的view函数
 
 ![截屏2026-03-03 14.10.37](assets/截屏2026-03-03 14.10.37.png)
+
+## 前端维护登陆状态
+
+维护一个登陆的全局变量，一般在src/stores文件夹中
+
+```js
+export const useUserStore = defineStore('user', () =>{})
+```
+
+这行代码是 **Pinia**（Vue 的官方状态管理库）的核心声明，定义并导出一个名为user的全局数据仓库
+
+export const useUserStore定义一个常量并导出，命名惯例：在 Pinia 中，通常以 use开头，以 Store结尾
+
+让其他 Vue 组件（如 `Login.vue`）可以通过 `import { useUserStore } from '@/store/user'` 来使用这个仓库。
+
+definStore是Pinia提供的函数，用于告诉vue我要创建一个新的全局存储空间，‘user’是这个仓库独一无二的名字在浏览器的开发者工具（Vue DevTools）里，你会看到这个仓库被标记为 `user`
+
+() => { ... }箭头函数，调用 `useUserStore()` 时，这个箭头函数内部的代码会被执行，从而初始化并返回你的 `id`、`username` 等变量。
+
+()里面没有内容表示默认没有参数，
+
+可以写变量名，（a, b, c) => {} 等价于function foo(a, b, c){}，只有一个参数也可以简写，a => {}
+
+双叹号的作用：第一次叹号会把0，空列表，空字符串变为true（转换为布尔值并取反），第二次叹号true变为false，想当于做了一次类型转换
+
+为什么带value？
+
+因为如果不加 `.value`，你拿到的是一整个复杂的对象，而不是里面的字符串 Token，导致判断逻辑永远失效
+
+在 Pinia 的 Setup 模式下，你必须手动返回你想暴露给外部的变量
+
+```js
+import {defineStore} from "pinia";
+import {ref} from "vue";
+
+export const useUserStore = defineStore('user', () =>{
+    const id = ref(0)
+    const username = ref('')
+    const photo = ref('')
+    const profile = ref('')
+    const accessToken = ref('')
+
+    function isLogin(){
+        return !!accessToken.value
+    }
+
+    function setAccessToken(token){
+        accessToken.value = token
+    }
+    function setUserInfo(data){
+        id.value = data.user_id
+        username.value = data.username
+        photo.value = data.photo
+        profile.value = data.profile
+    }
+    function logout()
+    {
+        id.value = 0
+        username.value = ''
+        photo.value = ''
+        profile.value = ''
+        accessToken.value = ''
+    }
+    return {
+        id,
+        username,
+        photo,
+        profile,
+        accessToken,
+        setAccessToken,
+        setUserInfo,
+        logout,
+        isLogin,
+    }
+})
+```
+
+## 前端全局布局包裹
+
+看app.vue内容
+
+```vue
+<script setup>
+
+import NavBar from "@/components/navbar/NavBar.vue";
+</script>
+
+<template>
+  <NavBar>
+    <RouterView />
+  </NavBar>
+</template>
+
+<style scoped>
+
+</style>
+
+```
+
+将导航栏（NavBar）作为一个永久存在的“外壳”，而将页面内容（RouterView）作为“填充物”塞进去
+
+< NavBar>为父组件，< RouterView />为子组件，占位符号，它是 Vue Router 的出口。它会根据当前浏览器的 URL，动态地替换成对应的页面组件
+
+为了让 `<RouterView />` 能够显示在 `<NavBar>` 的内部，你的 `NavBar.vue` 组件内部**必须**定义了一个 `<slot>` 标签。
+
+![截屏2026-03-03 16.57.48](assets/截屏2026-03-03 16.57.48.png)
+
+背后工作原理如下
+
+1.vue渲染app.vue
+
+2.看的navbar内容开始加载导航栏结构
+
+3.在 NavBar.vue的模板中，如果 Vue 遇到了 < slot>< /slot>，它就会把你在 App.vue中写在 `<NavBar>` 标签中间的那个 `<RouterView />` 拿过来，安放在那个位置。
+
+
+
+## 头像下拉栏设计
+
+效果
+
+```html
+			<li>
+        <RouterLink :to="{name: 'user-space-index', params: {user_id: user.id}}">
+          <div class = avatar>
+            <div class = "w-10 rounded-full">
+              <img :src = user.photo>
+            </div>
+          </div>
+          <div class = "text-base font-bold line-clamp-1">{{user.username}}aaaaaaaaaaaaaaaa</div>
+        </RouterLink>
+      </li>
+```
+
+`<li>` 标签在这里充当了列表中“每一行”的容器
+
+里面的RouterLink将整个区域（包含头像和名字）包裹起来。在图中，灰色背景矩形暗示了这是一个可点击的单元，左侧是头像的avatar结构，右侧是文字，font-bold加粗，line-clamp-1限制名字最多一行
+
+![截屏2026-03-03 17.41.34](assets/截屏2026-03-03 17.41.34.png)
+
+空的< li >可以实现一个横线分割
+
+![截屏2026-03-03 17.40.46](assets/截屏2026-03-03 17.40.46.png)
+
+==每个按钮绑定click事件，触发后绑定closeMenu函数就可以实现点击菜单后菜单关闭的效果==
