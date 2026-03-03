@@ -347,3 +347,99 @@ python manage.py migrate将数据库的更新同步到db.sqlite3
 使用默认的方法，raw_id_fields = []
 
 ![截屏2026-02-26 17.39.24](assets/截屏2026-02-26 17.39.24.png)
+
+
+
+实现4个api
+
+![截屏2026-02-26 21.11.56](assets/截屏2026-02-26 21.11.56.png)
+
+admin页面是django自带的登陆方式
+
+jwt（json web token）登陆方式比较时兴
+
+主要包含两个token
+
+1.refresh token，主要用于刷新access，有效期7天，存入cookie中。前端代码无法访问，后段可以进行设置维护
+
+2.access token身份验证token，有效期2小时，存入内存，前端js变量中
+
+
+
+登陆实现
+
+一般只获取信息就是get请求，其余都是post请求
+
+post的信息在data中，data是一个字典，可以用get方法，也可以用数组方法
+
+strip()方法用于删除字符串前后空格
+
+```python
+user = authenticate(username=username, password=password)
+```
+
+验证用户名和密码是否匹配，==如果匹配会返回用户名对应的用户，否则返回为空==
+
+Userprofile是刚才定义的数据库，object表示，==get就是获取一个数据，如果没有数据或者多于一个数据就会爆异常==，由于用户名唯一所以只能获取一个数据。总体就是查询用户名为username的数据，
+
+生成refreshtoken，并将accesstoken返回给用户
+
+用户名username是在数据库user中
+
+用户的照片和信息在userprofile中
+
+photo后面加url才能转换为路径
+
+将refreshtoken放入cookie中，refresh就是refreshtoken，refres.access_token就是accesstoken
+
+**为什么要设置两个类？user和userprofile是怎么联系到一起的？**
+
+user表是Django自带的，在Django中这种设计模式称为用户模型扩展，主要有以下原因
+
+1.职责分离，Django自带的类user非常强大，它内置了权限管理，密码加密和登陆逻辑，它只包含基础字段（用户名、邮箱、密码）。如果你想存用户的**头像、手机号、家庭住址、座右铭**，这些字段并不属于“核心账号信息”，放在自定义的UserProfile中更整洁。
+
+2.保护核心系统，直接修改 Django 的源码或强制继承并修改核心 User类风险较高。通过外挂一个 UserProfile，你可以在不破坏 Django 登录逻辑的前提下，随意添加业务字段。
+
+3.数据库性能，如果用户信息非常多，分在两个表中，可以使核心认证操作速度更快
+
+在Django中通常使用OneToOneField一对一外键建立联系，在web/models/user.py
+
+![截屏2026-03-03 10.36.55](assets/截屏2026-03-03 10.36.55.png)
+
+OneToOneField代表一个user只能对应一个userprofile
+
+on_delete=models.CASCADE：级联删除。如果这个用户账号被删除了，他的个人资料（头像等）也会跟着被自动删除，不会留下垃圾数据。
+
+在 Django REST Framework (DRF) 中，这个 request是 rest_framework.request.Request类的实例。里面装满了前端传给后端的所有信息。
+
+**退出登陆**
+
+```python
+permission_classes = [IsAuthenticated] # 强制登陆才能访问
+```
+
+如果没有登陆会返回401，django内置逻辑
+
+
+
+python中如果是空字符串的话，not之后就是true
+
+每次用refresh去刷新access的时候，refresh自身也会被刷新，'ROTATE_REFRESH_TOKENS': True的含义
+
+在settings.py中
+
+![截屏2026-03-03 13.50.30](assets/截屏2026-03-03 13.50.30.png)
+
+注意cookie里存入的refresh（保存时间更长），返回给前端的是access
+
+
+
+前端路由和后端路由的区别
+
+前端路由就是在地址栏里切换
+
+后端路由是决定调用哪个api
+
+路由前面加一个api防止和前端路由冲突，注意引入包，是自己写的view函数
+
+![截屏2026-03-03 14.10.37](assets/截屏2026-03-03 14.10.37.png)
