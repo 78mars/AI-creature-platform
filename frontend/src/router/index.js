@@ -62,7 +62,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/user/space/:user_id',
+      path: '/user/space/:user_id/',
       component: SpaceIndex,
       name: 'user-space-index',
       meta:{
