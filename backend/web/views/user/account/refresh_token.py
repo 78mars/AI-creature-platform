@@ -1,17 +1,17 @@
 from django.conf import settings
-from django.template.context_processors import request
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class RefreshTokenView(APIView):
-    def post(self, requset):
+    def post(self, request):
         try:
             # 从cookie中获取refresh token
             refresh_token = request.COOKIES.get('refresh_token')
             if not refresh_token:
                 return Response({
-                    'Refresh Token is empty'}, status = 401)
+                    'result':'Refresh Token不存在'}, status = 401)
             # 判断refreshtoken是否过期
             refresh = RefreshToken(refresh_token) # 如果过期会返回异常，被后面捕获返回401
             if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
@@ -21,7 +21,7 @@ class RefreshTokenView(APIView):
                     'access': str(refresh.access_token)  # 刷新access
                 })
                 response.set_cookie(
-                    key='refresh',
+                    key='refresh_token',
                     value=str(refresh),
                     httponly=True,
                     samesite='Lax',

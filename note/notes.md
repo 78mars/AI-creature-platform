@@ -588,3 +588,144 @@ import NavBar from "@/components/navbar/NavBar.vue";
 ![截屏2026-03-03 17.40.46](assets/截屏2026-03-03 17.40.46.png)
 
 ==每个按钮绑定click事件，触发后绑定closeMenu函数就可以实现点击菜单后菜单关闭的效果==
+
+## http请求过程
+
+![截屏2026-03-04 09.15.08](assets/截屏2026-03-04 09.15.08.png)
+
+## 对接前后端
+
+![截屏2026-03-04 09.32.36](assets/截屏2026-03-04 09.32.36.png)
+
+1.使用ref将普通数据包装成响应式对象，在v-model实现双向绑定，以完成同步你在输入框打字，`username.value` 自动更新在代码里改 `username.value`，输入框文字自动变化。
+
+2.条件渲染v-if，如果errorMessage中有内容则显示，使用{{变量名}}语法进行文本插值，只能写在两个标签之间
+
+登陆函数
+
+调用api中的post方法，data数据放入{}中，get方法需要将data放入params中
+
+出现系统异常后可以在后端中user文件夹的login代码加入traceback查看
+
+![截屏2026-03-04 10.16.24](assets/截屏2026-03-04 10.16.24.png)
+
+
+
+## 整个登陆流程
+
+网页上输入用户名和密码，由前端LoginIndex.vue接受，运行handlelogin函数，用户名和密码不为空后，通过http传入后端，前端不能直接调用后端的函数，需要通过http协议交流，后端会根据urls.py这张路由地图找到需要被调用的函数并运行，as_view会将这个类自动实例化。
+
+![截屏2026-03-04 11.12.10](assets/截屏2026-03-04 11.12.10.png)
+
+找到user/account/login.py
+
+![截屏2026-03-04 11.13.05](assets/截屏2026-03-04 11.13.05.png)
+
+此时前端的handlelogin中的post方法封装的data就会被挂载到request.data上面，所以才能直接用 request.data['username']取出来
+
+验证成功后后端的response会转化为一段json数据，前端用的Axios（封装在http/js/api.js中），在LoginIndex中，Axios 会把接收到的响应包装成一个对象 res。其中 HTTP 状态码、请求头等信息放在外面，而**后端真正返回的数据本体，会被 Axios 固定放在 `res.data` 里面**。![截屏2026-03-04 11.18.55](assets/截屏2026-03-04 11.18.55.png)
+
+之后对全局变量进行更新，user实例中的函数被执行（src/stores/user.js）
+
+跳转组件homepage-index，组件定义在router/index.js中
+
+同时在NavBar.vue中，响应式更新，进入到else分支，显示用户下拉栏
+
+![截屏2026-03-04 11.22.10](assets/截屏2026-03-04 11.22.10.png)
+
+UserMenu组件被显示
+
+流程绘制
+
+![Gemini_Generated_Image_vs7dv3vs7dv3vs7d](assets/Gemini_Generated_Image_vs7dv3vs7dv3vs7d.png)
+
+***
+
+**登陆使用回车提交表单**
+
+![截屏2026-03-04 11.23.56](assets/截屏2026-03-04 11.23.56.png)
+
+使用@submit.prevent="handleLogin"，并将标签改为form，防止自动刷新
+
+只要input输入框被包裹在form标签中就可以回车提交，html原生特性，回车出发submit事件，绑定登陆函数，防止刷新，网络请求由handlelogin来做
+
+## 前置守卫
+
+好友和创作等页面应该是登陆之后才可以查看，所以这种需要登陆的页面点击后应该自动跳转到登陆
+
+使用meta添加自定义信息
+
+添加守卫，在每次路由之前做出判断
+
+在页面跳转发生之前进行拦截，判断用户是否有权进入目标页面
+
+to表示即将进入的目标路由对象，from表示当前正要离开的路由对象
+
+to.meta.needLogin是自定义的元信息，给页面贴了一个“标签”，标记这个页面是否需要登录才能访问
+
+!user.isLogin()调用 Store 中的方法判断用户当前的登录状态。如果没登录，结果为 true
+
+返回对象 { name: '...' }：强制中断当前的导航，并重定向到登录页面。
+
+返回 true：安检通过，放行，允许跳转。
+
+```js
+router.beforeEach((to, from) =>{
+  const user = useUserStore()
+  if(to.meta.needLogin && !user.isLogin()){
+    return {
+      name: 'user-account-login-index'
+    }
+  }
+  return true
+})
+
+```
+
+
+
+
+
+## 云端持久化
+
+第一次刷新的时候一定还会变为登陆界面
+
+在api.js中已经定义好了逻辑，第一次用access请求失败后，会拿出refreshtoken进行请求，
+
+![截屏2026-03-04 17.24.38](assets/截屏2026-03-04 17.24.38.png)
+
+
+
+
+
+
+
+每当app.vue被挂载，就是发送get_user_info的api请求，但是这个请求在后台需要登陆
+
+
+
+![截屏2026-03-04 17.44.01](assets/截屏2026-03-04 17.44.01.png)
+
+有一下流程，如果access刚刚过期，并且在登陆状态进行了刷新，此时路由当前界面，会经过守卫，守卫判断hasPulledInfo为false，直接放行
+
+此时app.vue的组件挂在执行api.get('/api/user/account/get_user_info/')，
+
+![截屏2026-03-04 17.58.19](assets/截屏2026-03-04 17.58.19.png)
+
+后端发现Isauthenticated需要access但是已经过去，返回401，此时被api.js截获拦截器启动 isRefreshing，带着 Cookie 去请求 /refresh_token/，拿到了新的 Access Token，拦截器立刻修改请求头，把刚才失败的 get_user_info请求**再发了一次**，此时这一次 Django 拿到了新的 Token，验证通过，去数据库查出你的 photo和 profile，返回 JSON {'result': 'success', ...}Vue 组件终于等到了数据（它根本不知道中间拦截器去换了一次票），执行 `user.setUserInfo(data)`，Pinia 重新填满你的头像和名字。执行 finally块，**把锁解开**：标记已经拉取过信息。**最终裁决：** 检查当前页面的 `route.meta.needLogin`，因为你已经成功恢复了身份（`user.isLogin()` 为 true），所以不跳转，页面完美展示！
+
+app.vue渲染时间线，最先执行< script setup>里的代码，之后渲染NavBar，看见Routerview后去问 Vue Router：“现在的网址是什么？该显示哪个组件？假如现在的网址是/profile（需要登陆以后才能查看）Vue 就会把 `Profile.vue` 这个组件的 HTML 代码，强行塞进 `<RouterView />` 的位置，此时，这个“房子”（包含导航栏和个人中心页面的 HTML）在内存里拼装完毕，并**正式插入到浏览器的页面中**（你可以用肉眼看到它了）。
+
+就在 `<RouterView />` 里的内容刚刚被画到屏幕上的那一瞬间，Vue 宣布：“App.vue 挂载完毕，此时触发onMounted，Vue 的强制规定是：==必须先有 HTML（渲染 View），再执行 Mounted 钩子。== 这是为了保证你在 `onMounted` 里可以安全地操作页面元素。
+
+***
+
+为什么刷新后有两个401
+
+1.刷新后access_token消失，返回第一个401
+
+2.app.js捕获第一个401想后端发起了获取refreshtoken的请求，但是被后端拒绝，由于本地跨域问题，你的前端运行在某个端口（比如 `http://localhost:5173`），而后端运行在 `http://127.0.0.1:8000`。 即使都在你自己的电脑上，浏览器也会认为这是**跨域**，在跨域状态下，浏览器默认是**非常保守**的，它**绝对不会**主动把前端的 Cookie 发给后端。
+
+## 防止闪屏
+
+持久化登陆之后，会有闪屏问题，登陆按钮闪烁，添加一个判断条件user.hasPulledUserInfo && !user.isLogin()，只有加载完用户信息才判断是否出现登陆按钮

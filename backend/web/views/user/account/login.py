@@ -19,7 +19,7 @@ class LoginView(APIView):
             # 验证用户名和密码
             user = authenticate(username=username, password=password)
             if user:
-                user_profile = UserProfile.objects.get(username=username)
+                user_profile = UserProfile.objects.get(user=user)
                 refresh = RefreshToken.for_user(user)# 生成jwt
                 response = Response({
                     'result': 'success',
@@ -30,7 +30,7 @@ class LoginView(APIView):
                     'profile': user_profile.user.username,
                 })
                 response.set_cookie(
-                    key='refresh',
+                    key='refresh_token',
                     value=str(refresh),
                     httponly=True,
                     samesite='Lax',
